@@ -32,6 +32,20 @@ public class MioThread extends Thread
         return false;
     }
     
+    public static String translInt(int n){
+        if(n == 0) return "Gold";
+        if(n == 1) return "Pit";
+        if(n == 2) return "Parterre";
+        return null;
+    }
+
+    public static int translStr(String[] str){
+        if(str[0].equals("Gold")) return  0;
+        if(str[0].equals("Pit")) return  1;
+        if(str[0].equals("Parterre")) return 2;
+        return -1;
+    }
+
     @Override
     public void run() {
         try{
@@ -47,7 +61,8 @@ public class MioThread extends Thread
                 String input = in.readLine();
                 username = input.split(" ", 2);  
                 //SERVER → ERR USERINUSE se username già preso
-                if(!username[0].equals("LOGIN") || username[1].isBlank() || isUsedUsername(username, usernamesList)) out.println("ERR");
+                if(!username[0].equals("LOGIN") || username[1].isBlank()) out.println("ERR SYNTAX");
+                if(isUsedUsername(username, usernamesList)) out.println("ERR USERINUSE");
             }while(!username[0].equals("LOGIN") || username[1].isBlank() || isUsedUsername(username, usernamesList));
             usernamesList.add(username[1]);
             login = true;
@@ -59,10 +74,6 @@ public class MioThread extends Thread
                 String input = in.readLine();
                 switch (input) {
                     case "N":
-                        if(!login){
-                            out.println("ERR LOGINREQUIRED");
-                            break;
-                        }
                         out.println("AVAIL Gold:"+disponibilita.get(0)+" Pit:"+disponibilita.get(1)+" Parterre:"+disponibilita.get(2)+"");
                         break;
                     case "BUY":
@@ -72,20 +83,22 @@ public class MioThread extends Thread
                             String acquisto = in.readLine();
                             tipo_qta = acquisto.split(" ", 2);
                             if(!tipo_qta[0].equals("Gold") && !tipo_qta[0].equals("Pit") && !tipo_qta[0].equals("Parterre")){
-                                out.println("KO");
+                                out.println("ERR UNKNOWNTYPE");
                             }
                             else{          
-                                if(tipo_qta[0].equals("Gold")) n = 0;
-                                if(tipo_qta[0].equals("Pit")) n = 1;
-                                if(tipo_qta[0].equals("Parterre")) n = 2;
+                                n = translStr(tipo_qta);
                             }
                             if(Integer.parseInt(tipo_qta[1]) > disponibilita.get(n)){
                                 out.println("KO");
                             }
+                            if(tipo_qta[0].isBlank() || tipo_qta[1].isBlank()) out.println("ERR SYNTAX");
+
+
     
                         }while(!tipo_qta[0].equals("Gold") && !tipo_qta[0].equals("Pit") && !tipo_qta[0].equals("Parterre") || Integer.parseInt(tipo_qta[1]) > disponibilita.get(n));
                         out.println("OK");
                         disponibilita.set(n, disponibilita.get(n) - Integer.parseInt(tipo_qta[1]));
+                        if(disponibilita.get(n) == 0) out.println("NOTIFY SoldOut "+translInt(n));
                         break;
                     case "QUIT":
                         out.println("BYE");
